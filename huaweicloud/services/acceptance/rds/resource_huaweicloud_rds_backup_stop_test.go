@@ -26,7 +26,7 @@ func TestAccRdsBackupStop_basic(t *testing.T) {
 	})
 }
 
-func testDataSourceRdsBackupStop_base() string {
+func testDataSourceRdsBackupStop_base(name string) string {
 	return fmt.Sprintf(`
 %s
 resource "huaweicloud_networking_secgroup" "secgroup_test" {
@@ -55,14 +55,14 @@ resource "huaweicloud_rds_backup" "test" {
   instance_id = huaweicloud_rds_instance.test.id
   name        = "test"
 }
-`, testAccRdsInstance_base())
+`, testAccRdsInstance_base(name), name)
 }
 
-func testAccRdsBackupStop_basic() string {
+func testAccRdsBackupStop_basic(name) string {
 	return fmt.Sprintf(`
-%[1]s
+%s
 resource "huaweicloud_rds_backup_stop" "test" {
-  instance_id = "%[2]s"
+  instance_id = huaweicloud_rds_instance.test.id
 }
-`, testDataSourceRdsBackupStop_base(), acceptance.HW_RDS_INSTANCE_ID)
+`, testDataSourceRdsBackupStop_base(name))
 }
