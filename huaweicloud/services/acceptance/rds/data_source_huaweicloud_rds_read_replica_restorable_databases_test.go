@@ -73,13 +73,15 @@ resource "huaweicloud_rds_pg_account" "test" {
 resource "huaweicloud_rds_pg_database" "test" {
   instance_id = huaweicloud_rds_instance.test.id
   name        = "test_database"
+
+  depends_on = [huaweicloud_rds_pg_account.test]
 }
 
 resource "huaweicloud_rds_pg_schema" "test" {
   instance_id = huaweicloud_rds_instance.test.id
   db_name     = huaweicloud_rds_pg_database.test.name
   schema_name = "test_schema"
-  owner       = "test_account_name"
+  owner       = huaweicloud_rds_pg_account.test.name
 
   depends_on = [huaweicloud_rds_pg_database.test]
 }
