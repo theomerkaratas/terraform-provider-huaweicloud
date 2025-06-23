@@ -42,6 +42,7 @@ func TestAccDataSourceRdsReadReplicaRestorableDatabases_basic(t *testing.T) {
 func testDataSourceRdsReadReplicaRestorableDatabases_base(name string) string {
 	return fmt.Sprintf(`
 %[1]s
+
 resource "huaweicloud_rds_instance" "test" {
   name              = "%[2]s"
   flavor            = "rds.pg.n1.medium.2"
@@ -50,15 +51,23 @@ resource "huaweicloud_rds_instance" "test" {
   security_group_id = data.huaweicloud_networking_secgroup.test.id
   charging_mode     = "postPaid"
   availability_zone = [data.huaweicloud_availability_zones.test.names[0]]
+
   db {
     type     = "PostgreSQL"
     version  = "12"
     password = "Trerraform125@"
   }
+
   volume {
     type = "CLOUDSSD"
     size = 40
   }
+}
+
+resource "huaweicloud_rds_pg_account" "test" {
+  instance_id = huaweicloud_rds_instance.test.id
+  name        = "test_account_name"
+  password    = "Terraform145@!"
 }
 
 resource "huaweicloud_rds_pg_database" "test" {
@@ -68,9 +77,11 @@ resource "huaweicloud_rds_pg_database" "test" {
 
 resource "huaweicloud_rds_pg_schema" "test" {
   instance_id = huaweicloud_rds_instance.test.id
-  db_name     = "test_database"
+  db_name     = huaweicloud_rds_pg_database.test.name
   schema_name = "test_schema"
-  owner       = "rdsAdmin"
+  owner       = "test_account_name"
+
+  depends_on = [huaweicloud_rds_pg_database.test]
 }
 
 resource "huaweicloud_rds_read_replica_instance" "test" {
@@ -79,15 +90,19 @@ resource "huaweicloud_rds_read_replica_instance" "test" {
   primary_instance_id = huaweicloud_rds_instance.test.id
   availability_zone   = data.huaweicloud_availability_zones.test.names[0]
   security_group_id   = data.huaweicloud_networking_secgroup.test.id
+
   db {
     port = "5432"
   }
+
   volume {
     type              = "CLOUDSSD"
     size              = 40
     limit_size        = 200
     trigger_threshold = 10
   }
+
+  depends_on = [huaweicloud_rds_pg_schema.test]
 }
 `, testAccRdsInstance_base(), name)
 }
@@ -95,6 +110,7 @@ resource "huaweicloud_rds_read_replica_instance" "test" {
 func testDataSourceRdsReadReplicaRestorableDatabases_basic(name string) string {
 	return fmt.Sprintf(`
 %[1]s
+
 data "huaweicloud_rds_read_replica_restorable_databases" "test" {
   instance_id = huaweicloud_rds_read_replica_instance.test.id
 }
