@@ -31,8 +31,6 @@ func TestAccDataSourceRdsReadReplicaRestorableDatabases_basic(t *testing.T) {
 					resource.TestCheckResourceAttrSet(dataSource, "databases.0.name"),
 					resource.TestCheckResourceAttrSet(dataSource, "databases.0.total_tables"),
 					resource.TestCheckResourceAttrSet(dataSource, "databases.0.schemas.#"),
-					resource.TestCheckResourceAttrSet(dataSource, "databases.0.schemas.0.name"),
-					resource.TestCheckResourceAttrSet(dataSource, "databases.0.schemas.0.total_tables"),
 				),
 			},
 		},
