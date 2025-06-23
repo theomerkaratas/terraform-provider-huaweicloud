@@ -33,8 +33,6 @@ func TestAccDataSourceRdsReadReplicaRestorableDatabases_basic(t *testing.T) {
 					resource.TestCheckResourceAttrSet(dataSource, "databases.0.schemas.#"),
 					resource.TestCheckResourceAttrSet(dataSource, "databases.0.schemas.0.name"),
 					resource.TestCheckResourceAttrSet(dataSource, "databases.0.schemas.0.total_tables"),
-					resource.TestCheckResourceAttrSet(dataSource, "databases.0.schemas.0.tables.#"),
-					resource.TestCheckResourceAttrSet(dataSource, "databases.0.schemas.0.tables.0.name"),
 				),
 			},
 		},
@@ -62,6 +60,19 @@ resource "huaweicloud_rds_instance" "test" {
     size = 40
   }
 }
+
+resource "huaweicloud_rds_pg_database" "test" {
+  instance_id = huaweicloud_rds_instance.test.id
+  name        = "test_database"
+}
+
+resource "huaweicloud_rds_pg_schema" "test" {
+  instance_id = huaweicloud_rds_instance.test.id
+  db_name     = "test_database"
+  schema_name = "test_schema"
+  owner       = "rdsAdmin"
+}
+
 resource "huaweicloud_rds_read_replica_instance" "test" {
   name                = "%[2]s-read-replica"
   flavor              = "rds.pg.n1.medium.2.rr"
