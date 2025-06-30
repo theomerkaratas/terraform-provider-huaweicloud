@@ -73,6 +73,7 @@ type ctxType string
 // @API RDS PUT /v3/{project_id}/instances/{instance_id}/port
 // @API RDS PUT /v3/{project_id}/instances/{instance_id}/ip
 // @API RDS PUT /v3/{project_id}/instances/{instance_id}/security-group
+// @API RDS PUT /v3/{project_id}/instances/{instance_id}/incre-backup/policy
 // @API RDS POST /v3/{project_id}/instances/{instance_id}/password
 // @API RDS POST /v3/{project_id}/instances/{instance_id}/to-period
 // @API RDS PUT /v3/{project_id}/instances/{instance_id}/binlog/clear-policy
@@ -528,6 +529,19 @@ func ResourceRdsInstance() *schema.Resource {
 				Optional:     true,
 				RequiredWith: []string{"period_unit"},
 			},
+			"incre_backup_policy": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"interval": {
+							Type:     schema.TypeInt,
+							Optional: true,
+						},
+					},
+				},
+			},
 			"auto_renew": common.SchemaAutoRenewUpdatable(nil),
 			"auto_pay":   common.SchemaAutoPay(nil),
 		},
@@ -648,6 +662,10 @@ func resourceRdsInstanceCreate(ctx context.Context, d *schema.ResourceData, meta
 	}
 
 	if err = updateRdsInstanceDescription(d, client, instanceID); err != nil {
+		return diag.FromErr(err)
+	}
+
+	if err = updateIncreBackupPolicy(ctx, d, client); err != nil {
 		return diag.FromErr(err)
 	}
 
@@ -1107,11 +1125,16 @@ func resourceRdsInstanceUpdate(ctx context.Context, d *schema.ResourceData, meta
 	if err := updateRdsInstanceVolumeSize(ctx, d, cfg, client, instanceID); err != nil {
 		return diag.FromErr(err)
 	}
+
 	if err := updateRdsInstanceBackupStrategy(d, client, instanceID); err != nil {
 		return diag.FromErr(err)
 	}
 
 	if err = updateRdsInstanceMaintainWindow(d, client, instanceID); err != nil {
+		return diag.FromErr(err)
+	}
+
+	if err = updateIncreBackupPolicy(ctx, d, client); err != nil {
 		return diag.FromErr(err)
 	}
 
@@ -1635,6 +1658,62 @@ func changeSingleToPrimaryStandby(ctx context.Context, cfg *config.Config, d *sc
 	if _, err = stateConf.WaitForStateContext(ctx); err != nil {
 		return fmt.Errorf("error waiting for instance (%s) changing instance from Single to Primary/Standby: %s",
 			d.Id(), err)
+	}
+
+	return nil
+}
+
+func updateIncreBackupPolicy(ctx context.Context, d *schema.ResourceData, client *golangsdk.ServiceClient) error {
+	if !d.HasChange("incre_backup_policy.0.interval") {
+		return nil
+	}
+
+	interval := d.Get("incre_backup_policy.0.interval").(int)
+
+	var (
+		httpUrl = "v3/{project_id}/instances/{instance_id}/action"
+	)
+	path := client.Endpoint + httpUrl
+	path = strings.ReplaceAll(path, "{project_id}", client.ProjectID)
+	path = strings.ReplaceAll(path, "{instance_id}", d.Id())
+
+	body := map[string]interface{}{
+		"incre_backup_policy": map[string]interface{}{
+			"interval": interval,
+		},
+	}
+
+	reqOpts := golangsdk.RequestOpts{
+		KeepResponseBody: true,
+		JSONBody:         body,
+	}
+
+	retryFunc := func() (interface{}, bool, error) {
+		res, err := client.Request("PUT", path, &reqOpts)
+		retry, err := handleMultiOperationsError(err)
+		return res, retry, err
+	}
+	r, err := common.RetryContextWithWaitForState(&common.RetryContextWithWaitForStateParam{
+		Ctx:          ctx,
+		RetryFunc:    retryFunc,
+		WaitFunc:     rdsInstanceStateRefreshFunc(client, d.Id()),
+		WaitTarget:   []string{"ACTIVE"},
+		Timeout:      d.Timeout(schema.TimeoutUpdate),
+		DelayTimeout: 10 * time.Second,
+		PollInterval: 10 * time.Second,
+	})
+	if err != nil {
+		return fmt.Errorf("error updating incremental backup policy: %s ", err)
+	}
+
+	respBody, err := utils.FlattenResponse(r.(*http.Response))
+	if err != nil {
+		return err
+	}
+
+	jobID := utils.PathSearch("job_id", respBody, "").(string)
+	if jobID != "" {
+		return checkRDSInstanceJobFinish(client, jobID, d.Timeout(schema.TimeoutUpdate))
 	}
 
 	return nil

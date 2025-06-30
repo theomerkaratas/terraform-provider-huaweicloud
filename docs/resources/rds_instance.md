@@ -276,6 +276,10 @@ The following arguments are supported:
 * `binlog_retention_hours` - (Optional, Int) Specify the binlog retention period in hours. This parameter applies only to
   MySQL Server databases. Value range: `0` to `168` (7x24).
 
+* `incre_backup_policy` - (Optional, List) Specify the incremental backup configuration. Structure is documented below.
+
+* `interval` - (Optional, Int) Specify interval for incremental backup, in minutes.
+
 * `msdtc_hosts` - (Optional, List) Specify the host information for MSDTC.
   The [msdtc_hosts](#RdsInstance_MsdtcHosts) structure is documented below.
 
