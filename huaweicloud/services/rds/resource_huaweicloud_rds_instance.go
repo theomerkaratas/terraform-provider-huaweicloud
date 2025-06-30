@@ -1671,7 +1671,7 @@ func updateIncreBackupPolicy(ctx context.Context, d *schema.ResourceData, client
 	interval := d.Get("incre_backup_policy.0.interval").(int)
 
 	var (
-		httpUrl = "v3/{project_id}/instances/{instance_id}/action"
+		httpUrl = "v3/{project_id}/instances/{instance_id}/incre-backup/policy"
 	)
 	path := client.Endpoint + httpUrl
 	path = strings.ReplaceAll(path, "{project_id}", client.ProjectID)
