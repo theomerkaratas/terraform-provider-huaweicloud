@@ -738,6 +738,7 @@ func Provider() *schema.Provider {
 			"huaweicloud_codearts_pipeline_user_permissions":       codeartspipeline.DataSourceCodeArtsPipelineUserPermissions(),
 			"huaweicloud_codearts_pipeline_plugins":                codeartspipeline.DataSourceCodeArtsPipelinePlugins(),
 			"huaweicloud_codearts_pipeline_plugin_metrics":         codeartspipeline.DataSourceCodeArtsPipelinePluginMetrics(),
+			"huaweicloud_codearts_pipeline_rules":                  codeartspipeline.DataSourceCodeArtsPipelineRules(),
 
 			"huaweicloud_codearts_build_tasks":        codeartsbuild.DataSourceCodeArtsBuildTasks(),
 			"huaweicloud_codearts_build_task_records": codeartsbuild.DataSourceCodeArtsBuildTaskRecords(),
@@ -1633,6 +1634,7 @@ func Provider() *schema.Provider {
 			"huaweicloud_workspace_app_nas_storages":                    workspace.DataSourceAppNasStorages(),
 			"huaweicloud_workspace_app_publishable_apps":                workspace.DataSourceWorkspaceAppPublishableApps(),
 			"huaweicloud_workspace_app_schedule_tasks":                  workspace.DataSourceAppScheduleTasks(),
+			"huaweicloud_workspace_app_schedule_task_executions":        workspace.DataSourceAppScheduleTaskExecutions(),
 			"huaweicloud_workspace_app_schedule_task_future_executions": workspace.DataSourceAppScheduleTaskFutureExecutions(),
 			"huaweicloud_workspace_app_servers":                         workspace.DataSourceAppServers(),
 			"huaweicloud_workspace_app_service":                         workspace.DataSourceAppService(),
@@ -2899,6 +2901,7 @@ func Provider() *schema.Provider {
 			"huaweicloud_codearts_inspector_host":         codeartsinspector.ResourceInspectorHost(),
 
 			"huaweicloud_codearts_pipeline_basic_plugin":     codeartspipeline.ResourceCodeArtsPipelineBasicPlugin(),
+			"huaweicloud_codearts_pipeline_rule":             codeartspipeline.ResourceCodeArtsPipelineRule(),
 			"huaweicloud_codearts_pipeline_group":            codeartspipeline.ResourceCodeArtsPipelineGroup(),
 			"huaweicloud_codearts_pipeline_group_swap":       codeartspipeline.ResourceCodeArtsPipelineGroupSwap(),
 			"huaweicloud_codearts_pipeline":                  codeartspipeline.ResourceCodeArtsPipeline(),
