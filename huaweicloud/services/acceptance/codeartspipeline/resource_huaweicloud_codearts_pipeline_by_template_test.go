@@ -82,6 +82,17 @@ func testPipelineByTemplate_basic(name string) string {
 
 %[4]s
 
+resource "huaweicloud_codearts_pipeline_tag" "test" {
+  project_id = huaweicloud_codearts_project.test.id
+  name       = "%[5]s"
+  color      = "#0b81f6"
+}
+  
+resource "huaweicloud_codearts_pipeline_group" "test" {
+  project_id = huaweicloud_codearts_project.test.id
+  name       = "%[5]s"
+}
+
 resource "huaweicloud_codearts_pipeline_by_template" "test" {
   project_id       = huaweicloud_codearts_project.test.id
   template_id      = huaweicloud_codearts_pipeline_template.test.id
@@ -90,6 +101,8 @@ resource "huaweicloud_codearts_pipeline_by_template" "test" {
   banned           = true
   description      = "test"
   parameter_groups = [huaweicloud_codearts_pipeline_parameter_group.test.id]
+  group_id         = huaweicloud_codearts_pipeline_group.test.id
+  tags             = [huaweicloud_codearts_pipeline_tag.test.id]
 
   sources {
     type = "code"
@@ -235,12 +248,13 @@ func testPipelineByTemplate_createWithUpdate(name string) string {
 %[3]s
 
 resource "huaweicloud_codearts_pipeline_by_template" "test" {
-  project_id  = huaweicloud_codearts_project.test.id
-  template_id = huaweicloud_codearts_pipeline_template.test.id
-  name        = "%[4]s"
-  is_publish  = false
-  banned      = true
-  description = "test"
+  project_id                       = huaweicloud_codearts_project.test.id
+  template_id                      = huaweicloud_codearts_pipeline_template.test.id
+  name                             = "%[4]s"
+  is_publish                       = false
+  banned                           = true
+  description                      = "test"
+  resource_level_permission_switch = true
 
   sources {
     type = "code"
